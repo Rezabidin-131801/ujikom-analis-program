@@ -1,0 +1,137 @@
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum UserRole {
+  ADMIN
+  USER
+}
+
+enum AccountType {
+  CASH
+  BANK
+  E_WALLET
+}
+
+enum CategoryType {
+  INCOME
+  EXPENSE
+}
+
+enum TransactionType {
+  INCOME
+  EXPENSE
+  TRANSFER
+}
+
+model User {
+  id           String   @id @default(uuid()) @db.Uuid
+  name         String   @db.VarChar(100)
+  email        String   @unique @db.VarChar(255)
+  passwordHash String   @map("password_hash") @db.VarChar(255)
+  role         UserRole @default(USER)
+  isActive     Boolean  @default(true) @map("is_active")
+  createdAt    DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt    DateTime @updatedAt @map("updated_at") @db.Timestamptz(3)
+
+  accounts     FinancialAccount[]
+  transactions Transaction[]       @relation("OwnerTransactions")
+  categories   Category[]          @relation("PersonalCategories")
+  budgets      Budget[]
+  logs         AuditLog[]          @relation("LogActor")
+
+  @@map("users")
+}
+
+model FinancialAccount {
+  id              String   @id @default(uuid()) @db.Uuid
+  userId          String   @map("user_id") @db.Uuid
+  name            String   @db.VarChar(100)
+  type            AccountType
+  initialBalance  Decimal  @default(0) @map("initial_balance") @db.Decimal(18, 2)
+  currencyCode    String   @default("IDR") @map("currency_code") @db.VarChar(3)
+  isActive        Boolean  @default(true) @map("is_active")
+  createdAt       DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+
+  user         User          @relation(fields: [userId], references: [id], onDelete: Restrict)
+  transactions Transaction[] @relation("SourceAccount")
+  incoming     Transaction[] @relation("DestinationAccount")
+
+  @@unique([userId, name])
+  @@index([userId, isActive])
+  @@map("financial_accounts")
+}
+
+model Category {
+  id       String       @id @default(uuid()) @db.Uuid
+  ownerId  String?      @map("owner_id") @db.Uuid
+  name     String       @db.VarChar(60)
+  type     CategoryType
+  isActive Boolean      @default(true) @map("is_active")
+
+  owner        User?         @relation("PersonalCategories", fields: [ownerId], references: [id], onDelete: Restrict)
+  transactions Transaction[]
+  budgets      Budget[]
+
+  @@index([ownerId, type, isActive])
+  @@map("categories")
+}
+
+model Transaction {
+  id                  String          @id @default(uuid()) @db.Uuid
+  userId              String          @map("user_id") @db.Uuid
+  accountId           String          @map("account_id") @db.Uuid
+  destinationAccountId String?         @map("destination_account_id") @db.Uuid
+  categoryId          String?         @map("category_id") @db.Uuid
+  type                TransactionType
+  amount              Decimal         @db.Decimal(18, 2)
+  description         String?         @db.Text
+  occurredAt          DateTime        @map("occurred_at") @db.Timestamptz(3)
+  createdAt           DateTime        @default(now()) @map("created_at") @db.Timestamptz(3)
+
+  user        User              @relation("OwnerTransactions", fields: [userId], references: [id], onDelete: Restrict)
+  account     FinancialAccount  @relation("SourceAccount", fields: [accountId], references: [id], onDelete: Restrict)
+  destination FinancialAccount? @relation("DestinationAccount", fields: [destinationAccountId], references: [id], onDelete: Restrict)
+  category    Category?         @relation(fields: [categoryId], references: [id], onDelete: Restrict)
+
+  @@index([userId, occurredAt])
+  @@index([accountId, occurredAt])
+  @@map("transactions")
+}
+
+model Budget {
+  id         String  @id @default(uuid()) @db.Uuid
+  userId     String  @map("user_id") @db.Uuid
+  categoryId String  @map("category_id") @db.Uuid
+  year       Int
+  month      Int
+  amount     Decimal @db.Decimal(18, 2)
+
+  user     User     @relation(fields: [userId], references: [id], onDelete: Restrict)
+  category Category @relation(fields: [categoryId], references: [id], onDelete: Restrict)
+
+  @@unique([userId, categoryId, year, month])
+  @@index([userId, year, month])
+  @@map("budgets")
+}
+
+model AuditLog {
+  id         String   @id @default(uuid()) @db.Uuid
+  actorId    String   @map("actor_id") @db.Uuid
+  action     String   @db.VarChar(50)
+  entityType String   @map("entity_type") @db.VarChar(50)
+  entityId   String?  @map("entity_id") @db.VarChar(100)
+  details    Json?    @db.JsonB
+  createdAt  DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+
+  actor User @relation("LogActor", fields: [actorId], references: [id], onDelete: Restrict)
+
+  @@index([actorId, createdAt])
+  @@map("audit_logs")
+}
