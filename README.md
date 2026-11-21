@@ -17,10 +17,10 @@ Node.js 20.9+ dan PostgreSQL.
 
 ## Setup
 1. Jalankan:
-```bash
+```
 npm install
 npx prisma migrate dev --name init
-npm run db:seed
+npx prisma db seed
 npm test
 npm run typecheck
 npm run dev
