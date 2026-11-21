@@ -27,7 +27,7 @@ npm run dev
 ```
 2. Buka http://localhost:3000.
 
-Akun demo: `user@pfms.local` / `User12345!`; admin: `admin@pfms.local` / `Admin12345!`.
+Akun demo: `user@pfms.local` dan admin: `admin@pfms.local` dengan kedua password `12341234`
 
 ## Pengujian dan profiling
 - `npm test`: unit test algoritma dan perhitungan finansial.

@@ -1,1 +1,32 @@
-import {loginAction} from '@/app/actions';export default async function Login({searchParams}:{searchParams:Promise<{error?:string}>}){const q=await searchParams;return <main className="wrap" style={{maxWidth:480}}><section className="card"><span className="pill">Personal Finance Management</span><h1>Login PFMS</h1>{q.error&&<p className="negative">Email atau password salah.</p>}<form className="form" action={loginAction}><label>Email<input name="email" type="email" required/></label><label>Password<input name="password" type="password" required/></label><button>Masuk</button></form><hr/><p className="muted">Akun demo tersedia setelah menjalankan seed: user@pfms.local / User12345! dan admin@pfms.local / Admin12345!</p></section></main>}
+import { loginAction } from "@/app/actions";
+export default async function Login({
+  searchParams,
+}: {
+  searchParams: Promise<{ error?: string }>;
+}) {
+  const q = await searchParams;
+  return (
+    <main className="wrap" style={{ maxWidth: 480 }}>
+      <section className="card">
+        <span className="pill">Personal Finance Management</span>
+        <h1>Login PFMS</h1>
+        {q.error && <p className="negative">Email atau password salah.</p>}
+        <form className="form" action={loginAction}>
+          <label>
+            Email
+            <input name="email" type="email" required />
+          </label>
+          <label>
+            Password
+            <input name="password" type="password" required />
+          </label>
+          <button>Masuk</button>
+        </form>
+        <hr />
+        <p className="muted">
+          Akun demo tersedia: user@pfms.local dan admin@pfms.local dengan kedua password 12341234
+        </p>
+      </section>
+    </main>
+  );
+}

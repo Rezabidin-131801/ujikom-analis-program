@@ -11,7 +11,8 @@ export function mergeSort<T>(items: readonly T[], compare: Comparator<T>): T[] {
   const left = mergeSort(items.slice(0, middle), compare);
   const right = mergeSort(items.slice(middle), compare);
   const result: T[] = [];
-  let i = 0, j = 0;
+  let i = 0,
+    j = 0;
   while (i < left.length && j < right.length) {
     // <= menjaga stabilitas: elemen kiri dipertahankan saat nilainya sama.
     if (compare(left[i], right[j]) <= 0) result.push(left[i++]);
@@ -20,14 +21,22 @@ export function mergeSort<T>(items: readonly T[], compare: Comparator<T>): T[] {
   return result.concat(left.slice(i), right.slice(j));
 }
 
-export function linearSearch<T>(items: readonly T[], predicate: (item: T) => boolean): number {
+export function linearSearch<T>(
+  items: readonly T[],
+  predicate: (item: T) => boolean,
+): number {
   for (let i = 0; i < items.length; i++) if (predicate(items[i])) return i;
   return -1;
 }
 
 /** Mengembalikan indeks kecocokan pertama; items wajib sudah diurutkan. */
-export function binarySearch<T>(items: readonly T[], target: T, compare: Comparator<T>): number {
-  let low = 0, high = items.length - 1;
+export function binarySearch<T>(
+  items: readonly T[],
+  target: T,
+  compare: Comparator<T>,
+): number {
+  let low = 0,
+    high = items.length - 1;
   while (low <= high) {
     const middle = low + Math.floor((high - low) / 2);
     const order = compare(items[middle], target);
@@ -43,5 +52,5 @@ export function binarySearch<T>(items: readonly T[], target: T, compare: Compara
 }
 
 export function compareText(a: string, b: string): number {
-  return a.localeCompare(b, 'id', { sensitivity: 'base', numeric: true });
+  return a.localeCompare(b, "id", { sensitivity: "base", numeric: true });
 }

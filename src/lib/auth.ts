@@ -1,11 +1,54 @@
-import { cookies } from 'next/headers';
-import { SignJWT, jwtVerify } from 'jose';
-import { prisma } from '@/lib/prisma';
-const configuredSecret = process.env.AUTH_SECRET;
-if (process.env.NODE_ENV === 'production' && (!configuredSecret || configuredSecret.length < 32)) {
-  throw new Error('AUTH_SECRET wajib diatur minimal 32 karakter pada production.');
+import { betterAuth } from "better-auth";
+import { prismaAdapter } from "better-auth/adapters/prisma";
+import { nextCookies } from "better-auth/next-js";
+import { prisma } from "@/lib/prisma";
+
+const secret = process.env.AUTH_SECRET;
+
+if (!secret || secret.length < 32) {
+  throw new Error("AUTH_SECRET harus minimal 32 karakter.");
 }
-const secret = new TextEncoder().encode(configuredSecret || 'development-only-secret-change-this-now-000');
-export async function setSession(userId:string){const token=await new SignJWT({userId}).setProtectedHeader({alg:'HS256'}).setIssuedAt().setExpirationTime('7d').sign(secret);(await cookies()).set('pfms_session',token,{httpOnly:true,sameSite:'lax',secure:process.env.NODE_ENV==='production',path:'/',maxAge:604800});}
-export async function clearSession(){(await cookies()).delete('pfms_session');}
-export async function currentUser(){const token=(await cookies()).get('pfms_session')?.value;if(!token)return null;try{const {payload}=await jwtVerify(token,secret);if(typeof payload.userId!=='string')return null;return prisma.user.findFirst({where:{id:payload.userId,isActive:true},select:{id:true,name:true,email:true,role:true}});}catch{return null;}}
+
+export const auth = betterAuth({
+  secret,
+  baseURL: process.env.BETTER_AUTH_URL,
+
+  database: prismaAdapter(prisma, {
+    provider: "postgresql",
+  }),
+
+  emailAndPassword: {
+    enabled: true,
+    minPasswordLength: 8,
+  },
+
+  user: {
+    additionalFields: {
+      role: {
+        type: ["ADMIN", "USER"],
+        required: false,
+        defaultValue: "USER",
+        input: false,
+      },
+      isActive: {
+        type: "boolean",
+        required: false,
+        defaultValue: true,
+        input: false,
+      },
+    },
+  },
+
+  advanced: {
+    database: {
+      generateId: "uuid",
+    },
+  },
+
+  session: {
+    expiresIn: 60 * 60 * 24 * 7,
+    updateAge: 60 * 60 * 24,
+  },
+
+  plugins: [nextCookies()],
+});
