@@ -74,10 +74,10 @@ flowchart TD
 
 ## Kompleksitas
 
-| Algoritma | Best | Average | Worst | Memori tambahan |
-|---|---:|---:|---:|---:|
-| Merge sort | O(n log n) | O(n log n) | O(n log n) | O(n) |
-| Linear search | O(1) | O(n) | O(n) | O(1) |
-| Binary search | O(1) | O(log n) | O(log n) | O(1) |
+| Algoritma     |       Best |    Average |      Worst | Memori tambahan |
+| ------------- | ---------: | ---------: | ---------: | --------------: |
+| Merge sort    | O(n log n) | O(n log n) | O(n log n) |            O(n) |
+| Linear search |       O(1) |       O(n) |       O(n) |            O(1) |
+| Binary search |       O(1) |   O(log n) |   O(log n) |            O(1) |
 
 Implementasi ada di `src/lib/algorithms.ts`; unit test ada di `tests/algorithms.test.ts`.

@@ -1,0 +1,408 @@
+<!doctype html>
+<html class="default" lang="en" data-base="./">
+  <head>
+    <meta charset="utf-8" />
+    <meta http-equiv="x-ua-compatible" content="IE=edge" />
+    <title>pfms</title>
+    <meta name="description" content="Documentation for pfms" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link rel="stylesheet" href="assets/style.css" />
+    <link rel="stylesheet" href="assets/highlight.css" />
+    <script defer src="assets/main.js"></script>
+    <script async src="assets/icons.js" id="tsd-icons-script"></script>
+    <script async src="assets/search.js" id="tsd-search-script"></script>
+    <script async src="assets/navigation.js" id="tsd-nav-script"></script>
+  </head>
+  <body>
+    <script>
+      document.documentElement.dataset.theme =
+        localStorage.getItem("tsd-theme") || "os";
+      document.body.style.display = "none";
+      setTimeout(
+        () =>
+          window.app
+            ? app.showPage()
+            : document.body.style.removeProperty("display"),
+        500,
+      );
+    </script>
+    <header class="tsd-page-toolbar">
+      <div class="tsd-toolbar-contents container">
+        <a href="index.html" class="title">pfms</a>
+        <div id="tsd-toolbar-links"></div>
+        <button id="tsd-search-trigger" class="tsd-widget" aria-label="Search">
+          <svg
+            width="16"
+            height="16"
+            viewBox="0 0 16 16"
+            fill="none"
+            aria-hidden="true"
+          >
+            <use href="assets/icons.svg#icon-search"></use>
+          </svg>
+        </button>
+        <dialog id="tsd-search" aria-label="Search">
+          <input
+            role="combobox"
+            id="tsd-search-input"
+            aria-controls="tsd-search-results"
+            aria-autocomplete="list"
+            aria-expanded="true"
+            autocapitalize="off"
+            autocomplete="off"
+            placeholder="Search the docs"
+            maxlength="100"
+          />
+          <ul role="listbox" id="tsd-search-results"></ul>
+          <div id="tsd-search-status" aria-live="polite" aria-atomic="true">
+            <div>Preparing search index...</div>
+          </div>
+        </dialog>
+        <a
+          href="#"
+          class="tsd-widget menu"
+          id="tsd-toolbar-menu-trigger"
+          data-toggle="menu"
+          aria-label="Menu"
+          ><svg
+            width="16"
+            height="16"
+            viewBox="0 0 16 16"
+            fill="none"
+            aria-hidden="true"
+          >
+            <use href="assets/icons.svg#icon-menu"></use></svg
+        ></a>
+      </div>
+    </header>
+    <div class="container container-main">
+      <div class="col-content">
+        <div class="tsd-page-title">
+          <h1>pfms</h1>
+        </div>
+        <div class="tsd-panel tsd-typography">
+          <h1
+            id="personal-finance-management-system-pfms"
+            class="tsd-anchor-link"
+          >
+            Personal Finance Management System (PFMS)<a
+              href="#personal-finance-management-system-pfms"
+              aria-label="Permalink"
+              class="tsd-anchor-icon"
+              ><svg viewBox="0 0 24 24" aria-hidden="true">
+                <use href="assets/icons.svg#icon-anchor"></use></svg
+            ></a>
+          </h1>
+          <p>
+            Aplikasi pencatatan keuangan pribadi berbasis Next.js 15,
+            TypeScript, Prisma, Better Auth, dan PostgreSQL.
+          </p>
+          <h2 id="fitur" class="tsd-anchor-link">
+            Fitur<a href="#fitur" aria-label="Permalink" class="tsd-anchor-icon"
+              ><svg viewBox="0 0 24 24" aria-hidden="true">
+                <use href="assets/icons.svg#icon-anchor"></use></svg
+            ></a>
+          </h2>
+          <ul>
+            <li>
+              Login session cookie HTTP-only; tiga role:
+              <strong>ADMIN</strong> (kelola pengguna),
+              <strong>AUDITOR</strong> (lihat pengguna dan audit log,
+              read-only), <strong>USER</strong> (kelola keuangan sendiri).
+            </li>
+            <li>
+              Multi akun Cash, Bank, E-Wallet; transaksi pemasukan, pengeluaran,
+              dan transfer antar akun.
+            </li>
+            <li>
+              CRUD akun, kategori pribadi, transaksi, dan anggaran bulanan;
+              kategori global.
+            </li>
+            <li>
+              Pencarian dan sorting riwayat transaksi (merge sort, linear
+              search, binary search).
+            </li>
+            <li>
+              Dashboard, laporan, panel Admin, dan audit log transaksi yang
+              dicatat oleh trigger database.
+            </li>
+            <li>
+              Objek SQL: view, function, stored procedure, trigger (migration
+              <code>*_unit2_sql_objects</code>).
+            </li>
+          </ul>
+          <h2 id="persyaratan" class="tsd-anchor-link">
+            Persyaratan<a
+              href="#persyaratan"
+              aria-label="Permalink"
+              class="tsd-anchor-icon"
+              ><svg viewBox="0 0 24 24" aria-hidden="true">
+                <use href="assets/icons.svg#icon-anchor"></use></svg
+            ></a>
+          </h2>
+          <p>Node.js 20.9+, PostgreSQL (atau Docker), Prisma 7, Tanstack v9.</p>
+          <h2 id="setup" class="tsd-anchor-link">
+            Setup<a href="#setup" aria-label="Permalink" class="tsd-anchor-icon"
+              ><svg viewBox="0 0 24 24" aria-hidden="true">
+                <use href="assets/icons.svg#icon-anchor"></use></svg
+            ></a>
+          </h2>
+          <pre><code><span class="hl-0">cp</span><span class="hl-1"> .</span><span class="hl-0">env</span><span class="hl-1">.</span><span class="hl-0">example</span><span class="hl-1"> .</span><span class="hl-0">env</span><span class="hl-1">        # </span><span class="hl-0">isi</span><span class="hl-1"> </span><span class="hl-2">AUTH_SECRET</span><span class="hl-1"> (&gt;= </span><span class="hl-3">32</span><span class="hl-1"> </span><span class="hl-0">karakter</span><span class="hl-1">) </span><span class="hl-0">dan</span><span class="hl-1"> </span><span class="hl-4">ACC_PASSWORD</span><br/><span class="hl-0">docker</span><span class="hl-1"> </span><span class="hl-0">compose</span><span class="hl-1"> </span><span class="hl-0">up</span><span class="hl-1"> -</span><span class="hl-0">d</span><br/><span class="hl-0">npm</span><span class="hl-1"> </span><span class="hl-0">install</span><br/><span class="hl-0">npx</span><span class="hl-1"> </span><span class="hl-0">prisma</span><span class="hl-1"> </span><span class="hl-0">migrate</span><span class="hl-1"> </span><span class="hl-0">dev</span><span class="hl-1">      # </span><span class="hl-0">menerapkan</span><span class="hl-1"> </span><span class="hl-0">migration</span><span class="hl-1"> </span><span class="hl-0">dan</span><span class="hl-1"> </span><span class="hl-0">membuat</span><span class="hl-1"> </span><span class="hl-0">Prisma</span><span class="hl-1"> </span><span class="hl-0">Client</span><br/><span class="hl-0">npx</span><span class="hl-1"> </span><span class="hl-0">prisma</span><span class="hl-1"> </span><span class="hl-0">db</span><span class="hl-1"> </span><span class="hl-0">seed</span><br/><span class="hl-0">npm</span><span class="hl-1"> </span><span class="hl-0">run</span><span class="hl-1"> </span><span class="hl-0">dev</span>
+</code><button>Copy</button></pre>
+
+          <p>
+            Buka <a href="http://localhost:3000">http://localhost:3000</a>. Akun
+            demo: <code>user@pfms.local</code> dan
+            <code>admin@pfms.local</code> (password =
+            <code>ACC_PASSWORD</code>). Akun AUDITOR dibuat oleh ADMIN lewat
+            panel Admin.
+          </p>
+          <blockquote>
+            <p>
+              Folder <code>src/generated/prisma</code> tidak disertakan di ZIP;
+              dibuat otomatis oleh <code>npx prisma migrate dev</code> (atau
+              <code>npx prisma generate</code>).
+            </p>
+          </blockquote>
+          <h2 id="skrip" class="tsd-anchor-link">
+            Skrip<a href="#skrip" aria-label="Permalink" class="tsd-anchor-icon"
+              ><svg viewBox="0 0 24 24" aria-hidden="true">
+                <use href="assets/icons.svg#icon-anchor"></use></svg
+            ></a>
+          </h2>
+          <p>
+            | Perintah | Fungsi | | --------------------------------------------
+            |
+            ---------------------------------------------------------------------------------------------
+            | --------------------------------------------- | |
+            <code>npm test</code> | Unit test algoritma dan perhitungan
+            finansial serta integrasi test database | |
+            <code>npm run test:unit</code> | Unit testing algoritma | |
+            <code>npm run test:integration</code> | Integration test database
+            (butuh PostgreSQL + migration; dilewati bila
+            <code>DATABASE_URL</code> kosong) | |
+            <code>npm run typecheck</code> / <code>npm run build</code> |
+            Pemeriksaan TypeScript / build produksi | |
+            <code>npm run menu</code> | Program menu konsol: input angka,
+            sorting, searching | | <code>npm run profile</code> | Profiling
+            algoritma (median waktu, pemanggilan fungsi, heap) | |
+            <code>npm run profile:gc</code> | Profiling tanpa GC | |
+            <code>npm run docs:api</code> | Membuat dokumentasi API dengan
+            TypeDoc | |
+            <code
+              >Get-Content prisma/unit-2-objects.sql -Raw | docker exec -i
+              postgres psql -U postgres -d ujikom-analis-program</code
+            >
+            | Script SQL Unit 2 (DML, uji, COMMIT/ROLLBACK) | |
+            <code
+              >Get-Content prisma/explain-analyze.sql -Raw | docker exec -i
+              postgres psql -U postgres -d ujikom-analis-program</code
+            >
+            | Profiling statement database |
+          </p>
+          <h2 id="dokumentasi" class="tsd-anchor-link">
+            Dokumentasi<a
+              href="#dokumentasi"
+              aria-label="Permalink"
+              class="tsd-anchor-icon"
+              ><svg viewBox="0 0 24 24" aria-hidden="true">
+                <use href="assets/icons.svg#icon-anchor"></use></svg
+            ></a>
+          </h2>
+          <p>
+            <code>docs/ALGORITHM-FLOW.md</code> (pseudocode, flowchart),
+            <code>docs/TECHNICAL-REVIEW.md</code> (arsitektur, kompleksitas,
+            pengujian), <code>docs/CODE-REVIEW.md</code>,
+            <code>docs/SCALABILITY.md</code>,
+            <code>docs/INTEGRATION-TEST.md</code>.
+          </p>
+        </div>
+      </div>
+      <div class="col-sidebar">
+        <div class="page-menu">
+          <div class="tsd-navigation settings">
+            <details class="tsd-accordion">
+              <summary class="tsd-accordion-summary">
+                <svg
+                  width="20"
+                  height="20"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  aria-hidden="true"
+                >
+                  <use href="assets/icons.svg#icon-chevronDown"></use>
+                </svg>
+                <h3>Settings</h3>
+              </summary>
+              <div class="tsd-accordion-details">
+                <div class="tsd-filter-visibility">
+                  <span class="settings-label">Member Visibility</span>
+                  <ul id="tsd-filter-options">
+                    <li class="tsd-filter-item">
+                      <label class="tsd-filter-input"
+                        ><input
+                          type="checkbox"
+                          id="tsd-filter-protected"
+                          name="protected"
+                        /><svg
+                          width="32"
+                          height="32"
+                          viewBox="0 0 32 32"
+                          aria-hidden="true"
+                        >
+                          <rect
+                            class="tsd-checkbox-background"
+                            width="30"
+                            height="30"
+                            x="1"
+                            y="1"
+                            rx="6"
+                            fill="none"
+                          ></rect>
+                          <path
+                            class="tsd-checkbox-checkmark"
+                            d="M8.35422 16.8214L13.2143 21.75L24.6458 10.25"
+                            stroke="none"
+                            stroke-width="3.5"
+                            stroke-linejoin="round"
+                            fill="none"
+                          ></path></svg
+                        ><span>Protected</span></label
+                      >
+                    </li>
+                    <li class="tsd-filter-item">
+                      <label class="tsd-filter-input"
+                        ><input
+                          type="checkbox"
+                          id="tsd-filter-inherited"
+                          name="inherited"
+                          checked
+                        /><svg
+                          width="32"
+                          height="32"
+                          viewBox="0 0 32 32"
+                          aria-hidden="true"
+                        >
+                          <rect
+                            class="tsd-checkbox-background"
+                            width="30"
+                            height="30"
+                            x="1"
+                            y="1"
+                            rx="6"
+                            fill="none"
+                          ></rect>
+                          <path
+                            class="tsd-checkbox-checkmark"
+                            d="M8.35422 16.8214L13.2143 21.75L24.6458 10.25"
+                            stroke="none"
+                            stroke-width="3.5"
+                            stroke-linejoin="round"
+                            fill="none"
+                          ></path></svg
+                        ><span>Inherited</span></label
+                      >
+                    </li>
+                    <li class="tsd-filter-item">
+                      <label class="tsd-filter-input"
+                        ><input
+                          type="checkbox"
+                          id="tsd-filter-external"
+                          name="external"
+                        /><svg
+                          width="32"
+                          height="32"
+                          viewBox="0 0 32 32"
+                          aria-hidden="true"
+                        >
+                          <rect
+                            class="tsd-checkbox-background"
+                            width="30"
+                            height="30"
+                            x="1"
+                            y="1"
+                            rx="6"
+                            fill="none"
+                          ></rect>
+                          <path
+                            class="tsd-checkbox-checkmark"
+                            d="M8.35422 16.8214L13.2143 21.75L24.6458 10.25"
+                            stroke="none"
+                            stroke-width="3.5"
+                            stroke-linejoin="round"
+                            fill="none"
+                          ></path></svg
+                        ><span>External</span></label
+                      >
+                    </li>
+                  </ul>
+                </div>
+                <div class="tsd-theme-toggle">
+                  <label class="settings-label" for="tsd-theme">Theme</label
+                  ><select id="tsd-theme">
+                    <option value="os">OS</option>
+                    <option value="light">Light</option>
+                    <option value="dark">Dark</option>
+                  </select>
+                </div>
+              </div>
+            </details>
+          </div>
+          <details open class="tsd-accordion tsd-page-navigation">
+            <summary class="tsd-accordion-summary">
+              <svg
+                width="20"
+                height="20"
+                viewBox="0 0 24 24"
+                fill="none"
+                aria-hidden="true"
+              >
+                <use href="assets/icons.svg#icon-chevronDown"></use>
+              </svg>
+              <h3>On This Page</h3>
+            </summary>
+            <div class="tsd-accordion-details">
+              <a href="#personal-finance-management-system-pfms"
+                ><span
+                  >Personal <wbr />Finance <wbr />Management <wbr />System (<wbr />PFMS)</span
+                ></a
+              >
+              <ul>
+                <li>
+                  <a href="#fitur"><span>Fitur</span></a>
+                </li>
+                <li>
+                  <a href="#persyaratan"><span>Persyaratan</span></a>
+                </li>
+                <li>
+                  <a href="#setup"><span>Setup</span></a>
+                </li>
+                <li>
+                  <a href="#skrip"><span>Skrip</span></a>
+                </li>
+                <li>
+                  <a href="#dokumentasi"><span>Dokumentasi</span></a>
+                </li>
+              </ul>
+            </div>
+          </details>
+        </div>
+        <div class="site-menu">
+          <nav class="tsd-navigation">
+            <a href="modules.html">pfms</a>
+            <ul class="tsd-small-nested-navigation" id="tsd-nav-container">
+              <li>Loading...</li>
+            </ul>
+          </nav>
+        </div>
+      </div>
+    </div>
+    <footer>
+      <p class="tsd-generator">
+        Generated using
+        <a href="https://typedoc.org/" target="_blank">TypeDoc</a>
+      </p>
+    </footer>
+    <div class="overlay"></div>
+  </body>
+</html>

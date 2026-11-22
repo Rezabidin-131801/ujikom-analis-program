@@ -7,17 +7,17 @@ Stack: Next.js 15, React 19, TypeScript, Prisma 6, PostgreSQL, Node.js 20.9+.
 
 PFMS mencatat akun keuangan (Cash, Bank, E-Wallet), transaksi pemasukan/pengeluaran/transfer, kategori global/pribadi, anggaran bulanan, laporan, dashboard, autentikasi, dan audit log.
 
-| Modul | Lokasi | Tanggung jawab |
-|---|---|---|
-| Autentikasi | `src/lib/auth.ts`, `src/app/login` | JWT cookie, validasi sesi, login/logout |
-| Aksi aplikasi | `src/app/actions.ts` | Validasi input, otorisasi pemilik data, CRUD, audit log, revalidasi |
-| Akses data | `src/lib/prisma.ts`, `prisma/schema.prisma` | Prisma Client dan model relasional |
-| Akun | `src/app/accounts/page.tsx` | Tambah, ubah, hapus/nonaktif akun |
-| Transaksi | `src/app/transactions/page.tsx` | CRUD transaksi, kategori, pencarian, sorting |
-| Anggaran | `src/app/budgets/page.tsx` | Upsert dan hapus anggaran |
-| Dashboard/laporan | `src/app/dashboard`, `src/app/reports` | Agregasi saldo, arus kas, ringkasan periode |
-| Algoritma | `src/lib/algorithms.ts` | Merge sort, linear search, binary search |
-| Domain finansial | `src/lib/finance.ts` | Perhitungan saldo dan ringkasan arus kas |
+| Modul             | Lokasi                                                   | Tanggung jawab                                                                               |
+| ----------------- | -------------------------------------------------------- | -------------------------------------------------------------------------------------------- |
+| Autentikasi       | `src/lib/auth.ts`, `src/lib/session.ts`, `src/app/login` | Better Auth (session cookie HTTP-only), validasi sesi, login/logout, role ADMIN/AUDITOR/USER |
+| Aksi aplikasi     | `src/app/actions.ts`                                     | Validasi input, otorisasi pemilik data, CRUD, audit log, revalidasi                          |
+| Akses data        | `src/lib/prisma.ts`, `prisma/schema.prisma`              | Prisma Client dan model relasional                                                           |
+| Akun              | `src/app/accounts/page.tsx`                              | Tambah, ubah, hapus/nonaktif akun                                                            |
+| Transaksi         | `src/app/transactions/page.tsx`                          | CRUD transaksi, kategori, pencarian, sorting                                                 |
+| Anggaran          | `src/app/budgets/page.tsx`                               | Upsert dan hapus anggaran                                                                    |
+| Dashboard/laporan | `src/app/dashboard`, `src/app/reports`                   | Agregasi saldo, arus kas, ringkasan periode                                                  |
+| Algoritma         | `src/lib/algorithms.ts`                                  | Merge sort, linear search, binary search                                                     |
+| Domain finansial  | `src/lib/finance.ts`                                     | Perhitungan saldo dan ringkasan arus kas                                                     |
 
 ## 2. Algoritma sorting dan searching
 
@@ -51,14 +51,15 @@ Riwayat transaksi mendukung pencarian substring pada deskripsi, kategori, akun, 
 
 ## 3. CRUD dan aturan integritas
 
-| Entitas | Create | Read | Update | Delete |
-|---|---|---|---|---|
-| Akun | `addAccount` | halaman akun | `updateAccount` | `deleteAccount` |
-| Kategori pribadi | `addCategory` | halaman transaksi | `updateCategory` | `deleteCategory` |
-| Transaksi | `addTransaction` | riwayat/laporan | `updateTransaction` | `deleteTransaction` |
-| Anggaran | `saveBudget` (upsert) | halaman anggaran | `saveBudget` (upsert) | `deleteBudget` |
+| Entitas          | Create                | Read              | Update                | Delete              |
+| ---------------- | --------------------- | ----------------- | --------------------- | ------------------- |
+| Akun             | `addAccount`          | halaman akun      | `updateAccount`       | `deleteAccount`     |
+| Kategori pribadi | `addCategory`         | halaman transaksi | `updateCategory`      | `deleteCategory`    |
+| Transaksi        | `addTransaction`      | riwayat/laporan   | `updateTransaction`   | `deleteTransaction` |
+| Anggaran         | `saveBudget` (upsert) | halaman anggaran  | `saveBudget` (upsert) | `deleteBudget`      |
 
 Aturan penting:
+
 - Semua aksi data memanggil `auth()` dan memeriksa kepemilikan berdasarkan `userId`/`ownerId`.
 - Akun yang telah direferensikan transaksi dinonaktifkan (soft delete), bukan dihapus fisik.
 - Kategori yang masih dipakai transaksi/anggaran juga dinonaktifkan.
@@ -72,6 +73,7 @@ Aturan penting:
 Tool: Node.js test runner (`node:test`), `tsx`, dan `assert/strict`. Test unit berada di `tests/algorithms.test.ts`.
 
 Kasus uji:
+
 1. Merge sort mengurutkan angka dan tidak memutasi input.
 2. Merge sort stabil untuk elemen dengan key sama.
 3. Linear search menemukan data dan mengembalikan -1 bila tidak ada.
@@ -83,6 +85,7 @@ Kasus uji:
 9. Agregasi saldo banyak akun memproses transaksi satu kali.
 
 Jalankan:
+
 ```bash
 npm install
 npm test
@@ -93,12 +96,15 @@ npm run build
 ### Pengujian integrasi yang perlu dijalankan terhadap PostgreSQL
 
 Gunakan database pengujian terpisah, jangan database produksi. Setelah `.env` diisi:
+
 ```bash
 npx prisma migrate deploy
 npm run db:seed
 npm run dev
 ```
+
 Skenario integrasi manual/API:
+
 - Login dengan kredensial valid dan tidak valid; user nonaktif tidak dapat login.
 - User A tidak dapat membaca/mengubah/menghapus ID akun, kategori, transaksi, atau anggaran milik User B.
 - Buat akun, ubah nama/saldo, lalu hapus; akun yang sudah direferensikan harus menjadi nonaktif.
@@ -109,30 +115,19 @@ Skenario integrasi manual/API:
 - Upsert anggaran untuk kombinasi user/kategori/periode yang sama memperbarui nominal, bukan membuat duplikat.
 - Tolak nominal <= 0, tanggal tidak valid, bulan di luar 1–12, serta ID tidak dikenal.
 
-Catatan: test otomatis yang disediakan adalah unit test fungsi murni. Skenario database di atas merupakan prosedur integrasi manual; belum diklaim sebagai test otomatis.
+Selain skenario manual di atas, tersedia integration test otomatis lapisan database di `tests/integration.test.ts` (`npm run test:integration`; dilewati otomatis bila `DATABASE_URL` tidak diatur). Lembar pengujiannya ada di `docs/INTEGRATION-TEST.md`; kolom hasil aktual diisi setelah dijalankan pada mesin target.
 
 ## 5. Profiling dan kompleksitas
 
-Jalankan `npm run profile`. Script mengukur waktu wall-clock `performance.now()` untuk merge sort, linear search, dan binary search pada ukuran 1.000, 10.000, dan 50.000 data. Hasil akan berbeda sesuai CPU, versi Node.js, beban mesin, dan data acak; jalankan beberapa kali dan bandingkan median. Script ini adalah microbenchmark algoritma, bukan benchmark HTTP/database.
+Jalankan `npm run profile`. Script melakukan _warm-up_ (3 kali), lalu 7 kali pengukuran dan melaporkan **median** waktu (`performance.now()`), jumlah pemanggilan fungsi pembanding/predikat, dan estimasi tambahan heap untuk merge sort, linear search, dan binary search pada 1.000, 10.000, dan 50.000 data. Warm-up diperlukan karena run tunggal dipengaruhi kompilasi JIT: pada versi lama, 1.000 item tercatat lebih lambat daripada 10.000 item. Jumlah pemanggilan comparator merge sort mendekati n log2 n (sekitar 718 ribu untuk n=50.000). Hasil bergantung pada CPU, versi Node.js, dan beban mesin, jadi simpan keluaran dari mesin Anda sendiri sebagai bukti. Ini microbenchmark algoritma; untuk statement database gunakan `prisma/explain-analyze.sql` (`EXPLAIN (ANALYZE, BUFFERS)`).
 
-### Sampel hasil benchmark
-
-Satu kali pengukuran awal pada lingkungan Node.js 22.16.0 (container pengembangan), menggunakan implementasi yang sama:
-| Jumlah item | Merge sort | Linear search | Binary search |
-|---:|---:|---:|---:|
-| 1.000 | 5,293 ms | 0,058 ms | 0,103 ms |
-| 10.000 | 13,805 ms | 0,108 ms | 0,014 ms |
-| 50.000 | 43,740 ms | 0,424 ms | 0,009 ms |
-
-Angka ini hanya baseline ilustratif dari satu run dan data acak; bukan jaminan performa produksi. Binary search menggunakan array yang sudah diurutkan. Ulangi benchmark beberapa kali, gunakan median, dan jalankan pada mesin target sebelum menyimpulkan peningkatan.
-
-| Komponen | Kompleksitas waktu | Memori tambahan | Risiko skala |
-|---|---:|---:|---|
-| Merge sort | O(n log n) | O(n) | alokasi array saat merge |
-| Linear search | O(n) | O(1) | melambat linear |
-| Binary search | O(log n) | O(1) | perlu data terurut |
-| Filter transaksi | O(n) | O(n) hasil | transfer banyak data dari DB |
-| Saldo akun (per akun) | O(n) | O(1) | hindari loop transaksi bersarang |
+| Komponen              | Kompleksitas waktu | Memori tambahan | Risiko skala                     |
+| --------------------- | -----------------: | --------------: | -------------------------------- |
+| Merge sort            |         O(n log n) |            O(n) | alokasi array saat merge         |
+| Linear search         |               O(n) |            O(1) | melambat linear                  |
+| Binary search         |           O(log n) |            O(1) | perlu data terurut               |
+| Filter transaksi      |               O(n) |      O(n) hasil | transfer banyak data dari DB     |
+| Saldo akun (per akun) |               O(n) |            O(1) | hindari loop transaksi bersarang |
 
 Perbaikan profiling: perhitungan saldo dashboard dipindahkan dari pola nested reduce O(A×T) ke `accountBalances`, yang menginisialisasi map akun lalu memproses transaksi satu kali: O(A + T) waktu dan O(A) memori. Pemuatan semua transaksi di dashboard tetap dapat diganti agregasi SQL untuk skala besar.
 
@@ -140,24 +135,24 @@ Perbaikan profiling: perhitungan saldo dashboard dipindahkan dari pola nested re
 
 ### Temuan yang diperbaiki
 
-| ID | Temuan awal | Risiko | Perbaikan |
-|---|---|---|---|
-| CR-01 | Tidak ada edit/hapus transaksi, akun, kategori, anggaran | Data tidak dapat dikelola sepanjang siklus hidup | Tambah aksi update/delete dan UI |
-| CR-02 | Tidak tersedia sorting/search riwayat | Sulit menemukan transaksi | Filter substring dan merge sort dengan pilihan tanggal/nominal/jenis |
-| CR-03 | Perhitungan saldo dashboard menggunakan reduce bersarang | Beban komputasi meningkat terhadap jumlah akun dan transaksi | Ekstrak fungsi domain dan gunakan map saldo |
-| CR-04 | Belum ada test otomatis | Regresi logika tidak terdeteksi | Tambah test runner dan 8 unit test |
-| CR-05 | Belum ada prosedur profiling | Bottleneck tidak terukur | Tambah benchmark terukur untuk tiga algoritma |
-| CR-06 | Dokumentasi README menyatakan CRUD dan test belum tersedia | Onboarding tidak lengkap | README dan dokumen teknis diperbarui |
+| ID    | Temuan awal                                                | Risiko                                                       | Perbaikan                                                            |
+| ----- | ---------------------------------------------------------- | ------------------------------------------------------------ | -------------------------------------------------------------------- |
+| CR-01 | Tidak ada edit/hapus transaksi, akun, kategori, anggaran   | Data tidak dapat dikelola sepanjang siklus hidup             | Tambah aksi update/delete dan UI                                     |
+| CR-02 | Tidak tersedia sorting/search riwayat                      | Sulit menemukan transaksi                                    | Filter substring dan merge sort dengan pilihan tanggal/nominal/jenis |
+| CR-03 | Perhitungan saldo dashboard menggunakan reduce bersarang   | Beban komputasi meningkat terhadap jumlah akun dan transaksi | Ekstrak fungsi domain dan gunakan map saldo                          |
+| CR-04 | Belum ada test otomatis                                    | Regresi logika tidak terdeteksi                              | Tambah test runner dan 9 unit test                                   |
+| CR-05 | Belum ada prosedur profiling                               | Bottleneck tidak terukur                                     | Tambah benchmark terukur untuk tiga algoritma                        |
+| CR-06 | Dokumentasi README menyatakan CRUD dan test belum tersedia | Onboarding tidak lengkap                                     | README dan dokumen teknis diperbarui                                 |
 
 ### Risiko/pekerjaan lanjutan yang masih terbuka
 
 - Login belum memiliki rate limiting/lockout dan belum ada alur reset password.
-- Secret autentikasi memiliki fallback development; deployment wajib mengatur `AUTH_SECRET` acak kuat dan sebaiknya aplikasi gagal start jika secret tidak tersedia.
+- `AUTH_SECRET` wajib diatur (minimal 32 karakter); aplikasi gagal start bila tidak tersedia. Gunakan nilai acak kuat pada deployment.
 - Server action melempar error validasi; UI belum menampilkan pesan validasi yang ramah pengguna secara konsisten.
 - Pagination/filter transaksi sebaiknya dilakukan di database untuk dataset besar.
-- Tambahkan integration test otomatis dengan database PostgreSQL disposable dan uji otorisasi lintas pengguna.
+- Integration test otomatis sudah tersedia untuk lapisan database; uji otorisasi lintas pengguna pada server action masih berupa skenario manual.
 - Pertimbangkan constraint database untuk memastikan aturan transfer/kategori secara struktural.
-- Admin saat ini masih read-only; CRUD kategori global/admin belum termasuk lingkup CRUD pengguna pada halaman yang ada.
+- Panel Admin dapat menambah pengguna dan menampilkan audit log; role AUDITOR hanya dapat melihat (read-only). CRUD kategori global belum tersedia.
 
 ### Pengecualian coding guideline
 
@@ -165,27 +160,27 @@ Server Actions menggunakan `FormData` dan tipe enum Prisma di-cast pada batas in
 
 ## 7. Pemetaan terhadap dokumen tugas
 
-| Dokumen kompetensi | Implementasi/bukti pada proyek |
-|---|---|
-| Menganalisis skalabilitas perangkat lunak | Analisis kompleksitas, risiko pemuatan seluruh transaksi, dan rekomendasi pagination/agregasi SQL pada bagian profiling |
-| Menggunakan SQL | `prisma/schema.prisma` dan `prisma/unit-2-objects.sql` (view, function, stored procedure, trigger, transaksi) |
-| Menerapkan akses basis data | Prisma Client, PostgreSQL, relasi, index, autentikasi, role ADMIN/USER, dan ownership checks |
-| Mengimplementasikan algoritma pemrograman | `algorithms.ts`, sorting/searching, fungsi reusable, unit test dan kompleksitas |
-| Membuat dokumen kode program | JSDoc pada modul algoritma/domain dan dokumen ini |
-| Melakukan debugging | Pemeriksaan sintaks TypeScript/TSX dan smoke test; jalankan build pada lingkungan proyek untuk validasi penuh |
-| Melakukan profiling program | `scripts/profile.ts` dan analisis kompleksitas |
-| Menerapkan code review | Temuan, dampak, perbaikan, dan risiko tersisa pada bagian code review |
-| Pengujian unit program | `tests/algorithms.test.ts` |
-| Pengujian integrasi program | Skenario integrasi PostgreSQL pada bagian pengujian; belum diotomatisasi |
+| Dokumen kompetensi                        | Implementasi/bukti pada proyek                                                                                                                                          |
+| ----------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Menganalisis skalabilitas perangkat lunak | `docs/SCALABILITY.md` (lingkup, lingkungan, masalah, kompleksitas, estimasi hardware) dan bagian profiling                                                              |
+| Menggunakan SQL                           | `prisma/schema.prisma`, migration `*_unit2_sql_objects`, dan `prisma/unit-2-objects.sql` (DDL, DML, indeks, view, function, stored procedure, trigger, commit/rollback) |
+| Menerapkan akses basis data               | Prisma Client, PostgreSQL, relasi, index, autentikasi, role ADMIN/AUDITOR/USER, dan ownership checks                                                                    |
+| Mengimplementasikan algoritma pemrograman | `algorithms.ts`, `scripts/menu.ts` (program menu konsol), fungsi reusable, unit test dan kompleksitas                                                                   |
+| Membuat dokumen kode program              | TSDoc pada `src/lib/*.ts`, `npm run docs:api` (TypeDoc) dan dokumen ini                                                                                                 |
+| Melakukan debugging                       | Pemeriksaan sintaks TypeScript/TSX dan smoke test; jalankan build pada lingkungan proyek untuk validasi penuh                                                           |
+| Melakukan profiling program               | `scripts/profile.ts` (waktu median, jumlah pemanggilan, heap) dan `prisma/explain-analyze.sql`                                                                          |
+| Menerapkan code review                    | Temuan, dampak, perbaikan, dan risiko tersisa pada bagian code review                                                                                                   |
+| Pengujian unit program                    | `tests/algorithms.test.ts`                                                                                                                                              |
+| Pengujian integrasi program               | `tests/integration.test.ts` dan lembar uji `docs/INTEGRATION-TEST.md`                                                                                                   |
 
 ## 8. Cara instalasi dan menjalankan
 
 1. Ekstrak ZIP proyek.
-2. Pastikan Node.js 20.9+ dan PostgreSQL tersedia.
-3. Salin `.env.example` menjadi `.env`, isi `DATABASE_URL` dan `AUTH_SECRET`.
-4. Jalankan `npm install`.
-5. Jalankan `npx prisma migrate dev --name init`, kemudian `npm run db:seed`.
-6. Jalankan `npm test`, `npm run typecheck`, `npm run build`.
-7. Jalankan `npm run dev`, lalu buka `http://localhost:3000`.
+2. Pastikan Node.js 20.9+ dan Docker/PostgreSQL tersedia.
+3. Salin `.env.example` menjadi `.env`, lalu isi `AUTH_SECRET` (minimal 32 karakter) dan `ACC_PASSWORD`.
+4. `docker compose up -d`, lalu `npm install`.
+5. `npx prisma migrate dev` (menerapkan semua migration, termasuk role AUDITOR dan objek SQL Unit 2, serta membuat Prisma Client), kemudian `npm run db:seed`.
+6. `npm test`, `npm run typecheck`, `npm run build`; opsional `npm run test:integration`, `npm run profile`, `npm run menu`.
+7. `npm run dev`, lalu buka `http://localhost:3000`.
 
-Akun demo seed: `user@pfms.local` / `User12345!` dan `admin@pfms.local` / `Admin12345!`. Ganti kredensial demo sebelum penggunaan nyata.
+Akun demo seed: `user@pfms.local` (USER) dan `admin@pfms.local` (ADMIN); password diambil dari `ACC_PASSWORD` di `.env`. Akun AUDITOR dibuat oleh ADMIN melalui panel Admin. Ganti kredensial demo sebelum penggunaan nyata.
