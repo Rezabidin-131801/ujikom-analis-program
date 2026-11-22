@@ -1,4 +1,3 @@
-
 "use server";
 
 import { hashPassword } from "better-auth/crypto";
@@ -25,9 +24,7 @@ export async function createUserAction(formData: FormData) {
     .trim()
     .toLowerCase();
   const password = String(formData.get("password") || "");
-  const confirmPassword = String(
-    formData.get("confirmPassword") || ""
-  );
+  const confirmPassword = String(formData.get("confirmPassword") || "");
   const role = String(formData.get("role") || "USER");
 
   // Validasi input.
@@ -51,7 +48,7 @@ export async function createUserAction(formData: FormData) {
     redirect("/admin?status=password-mismatch");
   }
 
-  if (role !== "ADMIN" && role !== "USER") {
+  if (role !== "ADMIN" && role !== "USER" && role !== "AUDITOR") {
     redirect("/admin?status=invalid-role");
   }
 
@@ -72,13 +69,7 @@ export async function createUserAction(formData: FormData) {
     await prisma.$transaction(async (tx) => {
       // Buat pengguna.
       const user = await tx.user.create({
-        data: {
-          name,
-          email,
-          role,
-          isActive: true,
-          emailVerified: false,
-        },
+        data: { name, email, role, isActive: true, emailVerified: false },
       });
 
       // Buat kredensial login Better Auth.
@@ -98,11 +89,7 @@ export async function createUserAction(formData: FormData) {
           action: "CREATE",
           entityType: "USER",
           entityId: user.id,
-          details: {
-            name,
-            email,
-            role,
-          },
+          details: { name, email, role },
         },
       });
     });
