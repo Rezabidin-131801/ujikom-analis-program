@@ -3,12 +3,10 @@ import { currentUser } from "@/lib/session";
 import { prisma } from "@/lib/prisma";
 import {
   addTransaction,
-  addCategory,
   updateTransaction,
   deleteTransaction,
-  updateCategory,
-  deleteCategory,
 } from "@/app/actions";
+import { AddCategoryButton, CategoriesTable } from "@/components/categories";
 import { mergeSort, compareText, linearSearch } from "@/lib/algorithms";
 export default async function Transactions({
   searchParams,
@@ -136,46 +134,15 @@ export default async function Transactions({
           </form>
         </section>
         <section className="card">
-          <h2>Kategori pribadi</h2>
-          <form className="form" action={addCategory}>
-            <label>
-              Nama kategori
-              <input name="name" required maxLength={60} />
-            </label>
-            <label>
-              Jenis
-              <select name="type">
-                <option value="EXPENSE">Pengeluaran</option>
-                <option value="INCOME">Pemasukan</option>
-              </select>
-            </label>
-            <button>Tambah kategori</button>
-          </form>
-          {cats
-            .filter((c) => c.ownerId === u.id)
-            .map((c) => (
-              <div className="item" key={c.id}>
-                <form className="form" action={updateCategory}>
-                  <input type="hidden" name="id" value={c.id} />
-                  <label>
-                    Nama
-                    <input name="name" defaultValue={c.name} />
-                  </label>
-                  <label>
-                    Jenis
-                    <select name="type" defaultValue={c.type}>
-                      <option value="EXPENSE">Pengeluaran</option>
-                      <option value="INCOME">Pemasukan</option>
-                    </select>
-                  </label>
-                  <button>Perbarui kategori</button>
-                </form>
-                <form action={deleteCategory}>
-                  <input type="hidden" name="id" value={c.id} />
-                  <button className="danger">Hapus / nonaktifkan</button>
-                </form>
-              </div>
-            ))}
+          <div className="mb-4 flex items-center justify-between gap-3">
+            <h2 className="m-0">Kategori pribadi</h2>
+            <AddCategoryButton />
+          </div>
+          <CategoriesTable
+            rows={cats
+              .filter((c) => c.ownerId === u.id)
+              .map((c) => ({ id: c.id, name: c.name, type: c.type }))}
+          />
         </section>
       </div>
       <section className="card">

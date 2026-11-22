@@ -24,7 +24,9 @@ export default async function Login({
         </form>
         <hr />
         <p className="muted">
-          Akun demo tersedia: user@pfms.local dan admin@pfms.local dengan kedua password 12341234
+          Akun demo tersedia:
+          <br />
+          user@pfms.local | admin@pfms.local | auditor@pfms.local
         </p>
       </section>
     </main>

@@ -5,8 +5,7 @@ import { redirect } from "next/navigation";
 import { Inter } from "next/font/google";
 import { cn } from "@/lib/utils";
 
-const inter = Inter({subsets:['latin'],variable:'--font-sans'});
-
+const inter = Inter({ subsets: ["latin"], variable: "--font-sans" });
 
 async function logout() {
   "use server";
@@ -36,7 +35,11 @@ export default async function RootLayout({
                   <Link href="/transactions">Transaksi</Link>
                   <Link href="/budgets">Anggaran</Link>
                   <Link href="/reports">Laporan</Link>
-                  {user.role === "ADMIN" && <Link href="/admin">Admin</Link>}
+                  {(user.role === "ADMIN" || user.role === "AUDITOR") && (
+                    <Link href="/admin">
+                      {user.role === "ADMIN" ? "Admin" : "Audit"}
+                    </Link>
+                  )}
                   <span className="muted">{user.name}</span>
                   <form action={logout}>
                     <button>Keluar</button>
