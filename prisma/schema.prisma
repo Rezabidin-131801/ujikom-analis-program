@@ -10,6 +10,7 @@ datasource db {
 
 enum UserRole {
   ADMIN
+  AUDITOR
   USER
 }
 
@@ -158,6 +159,7 @@ model Transaction {
 
   @@index([userId, occurredAt])
   @@index([accountId, occurredAt])
+  @@index([type, occurredAt])
   @@map("transactions")
 }
 

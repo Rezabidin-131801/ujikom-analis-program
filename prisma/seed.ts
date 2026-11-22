@@ -22,6 +22,11 @@ async function main() {
   const users = [
     { name: "Admin PFMS", email: "admin@pfms.local", role: "ADMIN" as const },
     { name: "Demo User", email: "user@pfms.local", role: "USER" as const },
+    {
+      name: "Auditor PFMS",
+      email: "auditor@pfms.local",
+      role: "AUDITOR" as const,
+    },
   ];
 
   // Hash password menggunakan mekanisme Better Auth.
