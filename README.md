@@ -1,42 +1,50 @@
 # Personal Finance Management System (PFMS)
 
-Aplikasi pencatatan keuangan pribadi berbasis Next.js 15, TypeScript, Prisma, dan PostgreSQL.
+Aplikasi pencatatan keuangan pribadi berbasis Next.js 15, TypeScript, Prisma, Better Auth, dan PostgreSQL.
 
 ## Fitur
-- Login session cookie HTTP-only; role ADMIN dan USER.
-- Multi akun Cash, Bank, E-Wallet.
-- Transaksi pemasukan, pengeluaran, dan transfer antar akun milik user yang sama.
-- CRUD akun, kategori pribadi, transaksi, dan anggaran.
-- Pencarian riwayat transaksi serta sorting tanggal, nominal, dan jenis menggunakan merge sort.
-- Kategori global dan kategori pribadi.
-- Anggaran bulanan per kategori; dashboard, laporan, panel Admin read-only, audit log.
-- Algoritma merge sort, linear search, binary search, dan fungsi saldo teruji.
+
+- Login session cookie HTTP-only; tiga role: **ADMIN** (kelola pengguna), **AUDITOR** (lihat pengguna dan audit log, read-only), **USER** (kelola keuangan sendiri).
+- Multi akun Cash, Bank, E-Wallet; transaksi pemasukan, pengeluaran, dan transfer antar akun.
+- CRUD akun, kategori pribadi, transaksi, dan anggaran bulanan; kategori global.
+- Pencarian dan sorting riwayat transaksi (merge sort, linear search, binary search).
+- Dashboard, laporan, panel Admin, dan audit log transaksi yang dicatat oleh trigger database.
+- Objek SQL: view, function, stored procedure, trigger (migration `*_unit2_sql_objects`).
 
 ## Persyaratan
-Node.js 20.9+ dan PostgreSQL.
+
+Node.js 20.9+, PostgreSQL (atau Docker), Prisma 7, Tanstack v9.
 
 ## Setup
-1. Jalankan:
+
 ```
+cp .env.example .env        # isi AUTH_SECRET (>= 32 karakter) dan ACC_PASSWORD
+docker compose up -d
 npm install
-npx prisma migrate dev --name init
+npx prisma migrate dev      # menerapkan migration dan membuat Prisma Client
 npx prisma db seed
-npm test
-npm run typecheck
 npm run dev
 ```
-2. Buka http://localhost:3000.
 
-Akun demo: `user@pfms.local` dan admin: `admin@pfms.local` dengan kedua password `12341234`
+Buka http://localhost:3000. Akun demo: `user@pfms.local` dan `admin@pfms.local` (password = `ACC_PASSWORD`). Akun AUDITOR dibuat oleh ADMIN lewat panel Admin.
 
-## Pengujian dan profiling
-- `npm test`: unit test algoritma dan perhitungan finansial.
-- `npm run typecheck`: pemeriksaan TypeScript.
-- `npm run build`: Prisma generate dan Next.js production build.
-- `npm run profile`: benchmark merge sort, linear search, binary search pada 1.000, 10.000, dan 50.000 item.
+> Folder `src/generated/prisma` tidak disertakan di ZIP; dibuat otomatis oleh `npx prisma migrate dev` (atau `npx prisma generate`).
+
+## Skrip
+
+| Perintah                                     | Fungsi                                                                                        |
+| -------------------------------------------- | --------------------------------------------------------------------------------------------- | --------------------------------------------- |
+| `npm test`                                   | Unit test algoritma dan perhitungan finansial serta integrasi test database                   |
+| `npm run test:unit`                          | Unit testing algoritma                                                                        |
+| `npm run test:integration`                   | Integration test database (butuh PostgreSQL + migration; dilewati bila `DATABASE_URL` kosong) |
+| `npm run typecheck` / `npm run build`        | Pemeriksaan TypeScript / build produksi                                                       |
+| `npm run menu`                               | Program menu konsol: input angka, sorting, searching                                          |
+| `npm run profile`                            | Profiling algoritma (median waktu, pemanggilan fungsi, heap)                                  |
+| `npm run profile:gc`                         | Profiling tanpa GC                                                                            |
+| `npm run docs:api`                           | Membuat dokumentasi API dengan TypeDoc                                                        |
+| `Get-Content prisma/unit-2-objects.sql -Raw  | docker exec -i postgres psql -U postgres -d ujikom-analis-program`                            | Script SQL Unit 2 (DML, uji, COMMIT/ROLLBACK) |
+| `Get-Content prisma/explain-analyze.sql -Raw | docker exec -i postgres psql -U postgres -d ujikom-analis-program`                            | Profiling statement database                  |
 
 ## Dokumentasi
-Lihat [`docs/ALGORITHM-FLOW.md`](docs/ALGORITHM-FLOW.md) untuk pseudocode dan flowchart, [`docs/CODE-REVIEW.md`](docs/CODE-REVIEW.md) untuk laporan code review, serta [`docs/TECHNICAL-REVIEW.md`](docs/TECHNICAL-REVIEW.md) untuk arsitektur, algoritma dan kompleksitas, CRUD, test cases, prosedur integration testing, profiling, dan catatan code review.
 
-## Catatan keamanan
-Ini tetap merupakan aplikasi pembelajaran/MVP, belum siap produksi tanpa hardening. Gunakan secret kuat, ganti akun demo, aktifkan HTTPS, siapkan backup, rate limiting login, dan integration/security testing. Data yang memiliki relasi historis dinonaktifkan (soft delete) untuk menjaga integritas referensial.
+`docs/ALGORITHM-FLOW.md` (pseudocode, flowchart), `docs/TECHNICAL-REVIEW.md` (arsitektur, kompleksitas, pengujian), `docs/CODE-REVIEW.md`, `docs/SCALABILITY.md`, `docs/INTEGRATION-TEST.md`.
