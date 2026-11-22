@@ -1,6 +1,8 @@
 import { redirect } from "next/navigation";
 import { currentUser } from "@/lib/session";
 import { prisma } from "@/lib/prisma";
+import { TransactionsTable } from "./column";
+
 export default async function Reports({
   searchParams,
 }: {
@@ -61,26 +63,16 @@ export default async function Reports({
       </div>
       <section className="card">
         <h2>Rincian transaksi</h2>
-        <table className="table">
-          <thead>
-            <tr>
-              <th>Tanggal</th>
-              <th>Jenis</th>
-              <th>Kategori</th>
-              <th>Nominal</th>
-            </tr>
-          </thead>
-          <tbody>
-            {rows.map((t) => (
-              <tr key={t.id}>
-                <td>{t.occurredAt.toLocaleDateString("id-ID")}</td>
-                <td>{t.type}</td>
-                <td>{t.category?.name || "Transfer"}</td>
-                <td>Rp {Number(t.amount).toLocaleString("id-ID")}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+        <TransactionsTable
+          key={`${year}-${month}`}
+          rows={rows.map((t) => ({
+            id: t.id,
+            date: t.occurredAt.toLocaleDateString("id-ID"),
+            type: t.type,
+            category: t.category?.name || "Transfer",
+            amount: Number(t.amount),
+          }))}
+        />
       </section>
     </main>
   );
