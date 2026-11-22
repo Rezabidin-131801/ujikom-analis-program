@@ -8,9 +8,14 @@
     "start": "next start",
     "db:migrate": "prisma migrate dev",
     "db:seed": "tsx prisma/seed.ts",
-    "test": "tsx --test tests/algorithms.test.ts",
+    "test": "tsx --test tests/algorithms.test.ts tests/integration.test.ts",
+    "test:unit": "tsx --test tests/algorithms.test.ts",
+    "test:integration": "tsx --test tests/integration.test.ts",
     "typecheck": "tsc --noEmit",
-    "profile": "tsx scripts/profile.ts"
+    "profile": "tsx scripts/profile.ts",
+    "profile:gc": "node --expose-gc --import tsx scripts/profile.ts",
+    "menu": "tsx scripts/menu.ts",
+    "docs:api": "npx --yes typedoc --entryPoints src/lib/algorithms.ts src/lib/finance.ts --out docs/api"
   },
   "dependencies": {
     "@base-ui/react": "^1.9.0",
@@ -20,6 +25,7 @@
     "@prisma/adapter-pg": "^7.10.1",
     "@prisma/client": "^7.10.1",
     "@tailwindcss/postcss": "^4.3.5",
+    "@tanstack/react-table": "^9.3.1",
     "bcryptjs": "^3.0.2",
     "better-auth": "^1.7.27",
     "class-variance-authority": "^0.7.1",
