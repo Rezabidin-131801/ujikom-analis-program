@@ -32,18 +32,16 @@ Buka http://localhost:3000. Akun demo: `user@pfms.local` dan `admin@pfms.local` 
 
 ## Skrip
 
-| Perintah                                     | Fungsi                                                                                        |
-| -------------------------------------------- | --------------------------------------------------------------------------------------------- | --------------------------------------------- |
-| `npm test`                                   | Unit test algoritma dan perhitungan finansial serta integrasi test database                   |
-| `npm run test:unit`                          | Unit testing algoritma                                                                        |
-| `npm run test:integration`                   | Integration test database (butuh PostgreSQL + migration; dilewati bila `DATABASE_URL` kosong) |
-| `npm run typecheck` / `npm run build`        | Pemeriksaan TypeScript / build produksi                                                       |
-| `npm run menu`                               | Program menu konsol: input angka, sorting, searching                                          |
-| `npm run profile`                            | Profiling algoritma (median waktu, pemanggilan fungsi, heap)                                  |
-| `npm run profile:gc`                         | Profiling tanpa GC                                                                            |
-| `npm run docs:api`                           | Membuat dokumentasi API dengan TypeDoc                                                        |
-| `Get-Content prisma/unit-2-objects.sql -Raw  | docker exec -i postgres psql -U postgres -d ujikom-analis-program`                            | Script SQL Unit 2 (DML, uji, COMMIT/ROLLBACK) |
-| `Get-Content prisma/explain-analyze.sql -Raw | docker exec -i postgres psql -U postgres -d ujikom-analis-program`                            | Profiling statement database                  |
+`npm test` Unit test algoritma dan perhitungan finansial serta integrasi test database
+`npm run test:unit` Unit testing algoritma
+`npm run test:integration` Integration test database (butuh PostgreSQL + migration; dilewati bila `DATABASE_URL` kosong)
+`npm run typecheck` / `npm run build` Pemeriksaan TypeScript / build produksi
+`npm run menu` Program menu konsol: input angka, sorting, searching
+`npm run profile` Profiling algoritma (median waktu, pemanggilan fungsi, heap)
+`npm run profile:gc` Profiling tanpa GC
+`npm run docs:api` Membuat dokumentasi API dengan TypeDoc
+`Get-Content prisma/unit-2-objects.sql -Raw  | docker exec -i postgres psql -U postgres -d ujikom-analis-program` Script SQL Unit 2 (DML, uji, COMMIT/ROLLBACK)
+`Get-Content prisma/explain-analyze.sql -Raw | docker exec -i postgres psql -U postgres -d ujikom-analis-program` Profiling statement database
 
 ## Dokumentasi
 
