@@ -13,7 +13,6 @@ export async function loginAction(fd: FormData) {
 
   const password = String(fd.get("password") || "");
 
-  // Pastikan akun aktif sebelum login.
   const user = await prisma.user.findUnique({
     where: { email },
     select: { isActive: true },
@@ -41,9 +40,9 @@ export async function logoutAction() {
 }
 
 async function authentication() {
-  const u = await currentUser();
-  if (!u) redirect("/login");
-  return u;
+  const user = await currentUser();
+  if (!user) redirect("/login");
+  return user;
 }
 
 export async function addAccount(fd: FormData) {
@@ -51,6 +50,7 @@ export async function addAccount(fd: FormData) {
   const name = String(fd.get("name") || "").trim(),
     type = String(fd.get("type") || ""),
     balance = Number(fd.get("balance") || 0);
+
   if (
     !name ||
     !["CASH", "BANK", "E_WALLET"].includes(type) ||
@@ -58,9 +58,11 @@ export async function addAccount(fd: FormData) {
     balance < 0
   )
     throw new Error("Data akun tidak valid");
+
   await prisma.financialAccount.create({
     data: { userId: u.id, name, type: type as any, initialBalance: balance },
   });
+
   revalidatePath("/accounts");
   revalidatePath("/dashboard");
 }
@@ -69,11 +71,14 @@ export async function addCategory(fd: FormData) {
   const u = await authentication();
   const name = String(fd.get("name") || "").trim(),
     type = String(fd.get("type") || "");
+
   if (!name || !["INCOME", "EXPENSE"].includes(type))
     throw new Error("Kategori tidak valid");
+
   await prisma.category.create({
     data: { ownerId: u.id, name, type: type as any },
   });
+
   revalidatePath("/transactions");
   revalidatePath("/budgets");
 }
@@ -86,6 +91,7 @@ export async function addTransaction(fd: FormData) {
     categoryId = String(fd.get("categoryId") || "") || null,
     amount = Number(fd.get("amount")),
     date = new Date(String(fd.get("date") || ""));
+
   if (
     !["INCOME", "EXPENSE", "TRANSFER"].includes(type) ||
     !Number.isFinite(amount) ||
@@ -93,19 +99,23 @@ export async function addTransaction(fd: FormData) {
     isNaN(date.getTime())
   )
     throw new Error("Transaksi tidak valid");
+
   const account = await prisma.financialAccount.findFirst({
     where: { id: accountId, userId: u.id, isActive: true },
   });
+
   if (!account) throw new Error("Akun tidak ditemukan");
+
   if (type === "TRANSFER") {
-    if (!destinationId || destinationId === accountId || categoryId)
+    if (!destinationId || destinationId === accountId)
       throw new Error("Tujuan transfer tidak valid");
     const dest = await prisma.financialAccount.findFirst({
       where: { id: destinationId, userId: u.id, isActive: true },
     });
     if (!dest) throw new Error("Akun tujuan tidak valid");
   } else {
-    if (!categoryId || destinationId) throw new Error("Kategori wajib dipilih");
+    if (!categoryId) throw new Error("Kategori wajib dipilih");
+
     const cat = await prisma.category.findFirst({
       where: {
         id: categoryId,
@@ -114,30 +124,23 @@ export async function addTransaction(fd: FormData) {
         OR: [{ ownerId: null }, { ownerId: u.id }],
       },
     });
+
     if (!cat) throw new Error("Kategori tidak sesuai");
   }
-  await prisma.$transaction(async (tx) => {
-    await tx.transaction.create({
-      data: {
-        userId: u.id,
-        accountId,
-        destinationAccountId: destinationId,
-        categoryId,
-        type: type as any,
-        amount,
-        occurredAt: date,
-        description: String(fd.get("description") || ""),
-      },
-    });
-    await tx.auditLog.create({
-      data: {
-        actorId: u.id,
-        action: "CREATE",
-        entityType: "TRANSACTION",
-        details: { type, amount },
-      },
-    });
+
+  await prisma.transaction.create({
+    data: {
+      userId: u.id,
+      accountId,
+      destinationAccountId: type === "TRANSFER" ? destinationId : null,
+      categoryId: type === "TRANSFER" ? null : categoryId,
+      type: type as any,
+      amount,
+      occurredAt: date,
+      description: String(fd.get("description") || ""),
+    },
   });
+
   revalidatePath("/transactions");
   revalidatePath("/dashboard");
   revalidatePath("/budgets");
@@ -157,6 +160,7 @@ export async function saveBudget(fd: FormData) {
       OR: [{ ownerId: null }, { ownerId: u.id }],
     },
   });
+
   if (
     !cat ||
     !Number.isInteger(year) ||
@@ -166,6 +170,7 @@ export async function saveBudget(fd: FormData) {
     amount <= 0
   )
     throw new Error("Anggaran tidak valid");
+
   await prisma.budget.upsert({
     where: {
       userId_categoryId_year_month: { userId: u.id, categoryId, year, month },
@@ -173,11 +178,11 @@ export async function saveBudget(fd: FormData) {
     update: { amount },
     create: { userId: u.id, categoryId, year, month, amount },
   });
+
   revalidatePath("/budgets");
   revalidatePath("/dashboard");
 }
 
-// CRUD tambahan: entitas yang telah direferensikan dinonaktifkan, bukan dihapus fisik.
 export async function updateAccount(fd: FormData) {
   const u = await authentication(),
     id = String(fd.get("id") || ""),
@@ -193,81 +198,99 @@ export async function updateAccount(fd: FormData) {
     balance < 0
   )
     throw new Error("Data akun tidak valid");
+
   const owned = await prisma.financialAccount.findFirst({
     where: { id, userId: u.id },
   });
+
   if (!owned) throw new Error("Akun tidak ditemukan");
   await prisma.financialAccount.update({
     where: { id },
     data: { name, type: type as any, initialBalance: balance },
   });
+
   revalidatePath("/accounts");
   revalidatePath("/dashboard");
 }
+
 export async function deleteAccount(fd: FormData) {
   const u = await authentication(),
     id = String(fd.get("id") || "");
   const owned = await prisma.financialAccount.findFirst({
     where: { id, userId: u.id },
   });
+
   if (!owned) throw new Error("Akun tidak ditemukan");
+
   const usage = await prisma.transaction.count({
     where: {
       userId: u.id,
       OR: [{ accountId: id }, { destinationAccountId: id }],
     },
   });
+
   if (usage)
     await prisma.financialAccount.update({
       where: { id },
       data: { isActive: false },
     });
   else await prisma.financialAccount.delete({ where: { id } });
+
   revalidatePath("/accounts");
   revalidatePath("/transactions");
   revalidatePath("/dashboard");
 }
+
 export async function updateCategory(fd: FormData) {
   const u = await authentication(),
     id = String(fd.get("id") || ""),
     name = String(fd.get("name") || "").trim(),
     type = String(fd.get("type") || "");
+
   if (!id || !name || name.length > 60 || !["INCOME", "EXPENSE"].includes(type))
     throw new Error("Kategori tidak valid");
   const owned = await prisma.category.findFirst({
     where: { id, ownerId: u.id },
   });
+
   if (!owned) throw new Error("Kategori pribadi tidak ditemukan");
   const used = await prisma.transaction.count({
     where: { userId: u.id, categoryId: id },
   });
+
   if (used && owned.type !== type)
     throw new Error("Jenis kategori tidak dapat diubah karena sudah digunakan");
   await prisma.category.update({
     where: { id },
     data: { name, type: type as any },
   });
+
   revalidatePath("/transactions");
   revalidatePath("/budgets");
   revalidatePath("/reports");
 }
+
 export async function deleteCategory(fd: FormData) {
   const u = await authentication(),
     id = String(fd.get("id") || "");
   const owned = await prisma.category.findFirst({
     where: { id, ownerId: u.id },
   });
+
   if (!owned) throw new Error("Kategori pribadi tidak ditemukan");
   const [txCount, budgetCount] = await Promise.all([
     prisma.transaction.count({ where: { userId: u.id, categoryId: id } }),
     prisma.budget.count({ where: { userId: u.id, categoryId: id } }),
   ]);
+
   if (txCount || budgetCount)
     await prisma.category.update({ where: { id }, data: { isActive: false } });
   else await prisma.category.delete({ where: { id } });
+
   revalidatePath("/transactions");
   revalidatePath("/budgets");
 }
+
 export async function updateTransaction(fd: FormData) {
   const u = await authentication(),
     id = String(fd.get("id") || ""),
@@ -277,6 +300,7 @@ export async function updateTransaction(fd: FormData) {
   const categoryId = String(fd.get("categoryId") || "") || null,
     amount = Number(fd.get("amount"));
   const date = new Date(String(fd.get("date") || ""));
+
   if (
     !id ||
     !["INCOME", "EXPENSE", "TRANSFER"].includes(type) ||
@@ -285,23 +309,31 @@ export async function updateTransaction(fd: FormData) {
     !Number.isFinite(date.getTime())
   )
     throw new Error("Transaksi tidak valid");
+
   const existing = await prisma.transaction.findFirst({
     where: { id, userId: u.id },
   });
+
   if (!existing) throw new Error("Transaksi tidak ditemukan");
+
   const account = await prisma.financialAccount.findFirst({
     where: { id: accountId, userId: u.id, isActive: true },
   });
+
   if (!account) throw new Error("Akun sumber tidak valid");
+
   if (type === "TRANSFER") {
-    if (!destinationId || destinationId === accountId || categoryId)
+    if (!destinationId || destinationId === accountId)
       throw new Error("Tujuan transfer tidak valid");
+
     const dest = await prisma.financialAccount.findFirst({
       where: { id: destinationId, userId: u.id, isActive: true },
     });
+
     if (!dest) throw new Error("Akun tujuan tidak valid");
   } else {
-    if (!categoryId || destinationId) throw new Error("Kategori wajib dipilih");
+    if (!categoryId) throw new Error("Kategori wajib dipilih");
+
     const cat = await prisma.category.findFirst({
       where: {
         id: categoryId,
@@ -310,61 +342,47 @@ export async function updateTransaction(fd: FormData) {
         OR: [{ ownerId: null }, { ownerId: u.id }],
       },
     });
+
     if (!cat) throw new Error("Kategori tidak sesuai");
   }
-  await prisma.$transaction(async (tx) => {
-    await tx.transaction.update({
-      where: { id },
-      data: {
-        type: type as any,
-        accountId,
-        destinationAccountId: destinationId,
-        categoryId,
-        amount,
-        occurredAt: date,
-        description: String(fd.get("description") || ""),
-      },
-    });
-    await tx.auditLog.create({
-      data: {
-        actorId: u.id,
-        action: "UPDATE",
-        entityType: "TRANSACTION",
-        entityId: id,
-        details: { type, amount },
-      },
-    });
+
+  await prisma.transaction.update({
+    where: { id },
+    data: {
+      type: type as any,
+      accountId,
+      destinationAccountId: type === "TRANSFER" ? destinationId : null,
+      categoryId: type === "TRANSFER" ? null : categoryId,
+      amount,
+      occurredAt: date,
+      description: String(fd.get("description") || ""),
+    },
   });
+
   revalidatePath("/transactions");
   revalidatePath("/dashboard");
   revalidatePath("/budgets");
   revalidatePath("/reports");
 }
+
 export async function deleteTransaction(fd: FormData) {
   const u = await authentication(),
     id = String(fd.get("id") || "");
   const row = await prisma.transaction.findFirst({
     where: { id, userId: u.id },
-    select: { id: true, type: true, amount: true },
+    select: { id: true },
   });
+
   if (!row) throw new Error("Transaksi tidak ditemukan");
-  await prisma.$transaction(async (tx) => {
-    await tx.transaction.delete({ where: { id } });
-    await tx.auditLog.create({
-      data: {
-        actorId: u.id,
-        action: "DELETE",
-        entityType: "TRANSACTION",
-        entityId: id,
-        details: { type: row.type, amount: Number(row.amount) },
-      },
-    });
-  });
+
+  await prisma.transaction.delete({ where: { id } });
+
   revalidatePath("/transactions");
   revalidatePath("/dashboard");
   revalidatePath("/budgets");
   revalidatePath("/reports");
 }
+
 export async function deleteBudget(fd: FormData) {
   const u = await authentication(),
     id = String(fd.get("id") || "");
@@ -372,8 +390,11 @@ export async function deleteBudget(fd: FormData) {
     where: { id, userId: u.id },
     select: { id: true },
   });
+
   if (!row) throw new Error("Anggaran tidak ditemukan");
+
   await prisma.budget.delete({ where: { id } });
+
   revalidatePath("/budgets");
   revalidatePath("/dashboard");
 }
